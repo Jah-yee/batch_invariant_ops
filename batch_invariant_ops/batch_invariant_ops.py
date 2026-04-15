@@ -365,7 +365,12 @@ def mean_kernel(
         acc += tl.sum(vals)
 
     # Compute mean and store
-    mean_val = acc / N
+    # Handle empty dimension case (return zeros to avoid NaN)
+    if N == 0:
+        mean_val = 0.0
+    else:
+        mean_val = acc / N
+    
     output_idx = m_idx * output_stride0 + k_idx * output_stride1
     tl.store(output_ptr + output_idx, mean_val)
 
