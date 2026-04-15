@@ -400,8 +400,17 @@ def mean_dim(
     if dim < 0:
         dim = dim + input.ndim
 
+    # Get input shape and strides
+    shape = list(input.shape)
+
     # Handle empty dimension case (return zeros to avoid NaN)
     if shape[dim] == 0:
+        # Handle dtype
+        if dtype is None:
+            if input.dtype in [torch.int8, torch.int16, torch.int32, torch.int64]:
+                dtype = torch.float32
+            else:
+                dtype = input.dtype
         if keepdim:
             output_shape = shape.copy()
             output_shape[dim] = 1
@@ -419,9 +428,6 @@ def mean_dim(
     # Convert input to appropriate dtype if needed
     if input.dtype != dtype:
         input = input.to(dtype)
-
-    # Get input shape and strides
-    shape = list(input.shape)
 
     # Calculate dimensions for kernel
     M = 1
