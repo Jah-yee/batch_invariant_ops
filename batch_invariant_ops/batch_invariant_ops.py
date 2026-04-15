@@ -395,6 +395,15 @@ def mean_dim(
     if dim < 0:
         dim = dim + input.ndim
 
+    # Handle empty dimension case (return zeros to avoid NaN)
+    if shape[dim] == 0:
+        if keepdim:
+            output_shape = shape.copy()
+            output_shape[dim] = 1
+        else:
+            output_shape = shape[:dim] + shape[dim + 1:]
+        return torch.zeros(output_shape, dtype=dtype, device=input.device)
+
     # Handle dtype
     if dtype is None:
         if input.dtype in [torch.int8, torch.int16, torch.int32, torch.int64]:
