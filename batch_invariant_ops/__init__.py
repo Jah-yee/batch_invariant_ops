@@ -1,4 +1,4 @@
-from .batch_invariant_ops import (
+from .batch_invariant_ops import softmax, (
     set_batch_invariant_mode,
     is_batch_invariant_mode_enabled,
     disable_batch_invariant_mode,
