@@ -340,6 +340,18 @@ def mean_kernel(
     Kernel for computing mean along a single dimension.
     Input is viewed as (M, N, K) where N is the dimension being reduced.
     """
+    # Handle edge case: empty reduction dimension returns NaN
+    if N == 0:
+        pid = tl.program_id(0)
+        m_idx = pid // K
+        k_idx = pid % K
+        if m_idx >= M or k_idx >= K:
+            return
+        mean_val = float("nan")
+        output_idx = m_idx * output_stride0 + k_idx * output_stride1
+        tl.store(output_ptr + output_idx, mean_val)
+        return
+
     # Program ID gives us which output element we're computing
     pid = tl.program_id(0)
 
@@ -390,6 +402,16 @@ def mean_dim(
     assert -input.ndim <= dim < input.ndim, (
         f"Invalid dimension {dim} for tensor with {input.ndim} dimensions"
     )
+    
+    # Handle empty dimension case explicitly to avoid NaN
+    if input.shape[dim] == 0:
+        # Return a tensor of NaN values with the appropriate shape
+        shape = list(input.shape)
+        if keepdim:
+            shape[dim] = 1
+        else:
+            shape.pop(dim)
+        return torch.full(shape, float("nan"), dtype=dtype or input.dtype, device=input.device)
 
     # Handle negative dim
     if dim < 0:
